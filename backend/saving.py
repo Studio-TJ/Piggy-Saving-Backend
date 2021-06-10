@@ -4,70 +4,60 @@ import os
 import random
 import csv
 import datetime
+import mysql.connector as sql
 
 RANGE_MAX = 365
-WORKINGDIR = os.path.dirname(os.path.realpath(__file__))
-FILE = WORKINGDIR + "/tmp/tmp.csv"
-
 class Saving():
     def __init__(self):
-        if not os.path.exists(WORKINGDIR + "/tmp"):
-            os.mkdir(WORKINGDIR + "/tmp")
+        self._mydb = sql.connect(
+            host="localhost",
+            user="piggysaving",
+            password="piggysaving",
+            database="piggysaving"
+        )
+        self._mycursor = self._mydb.cursor()
 
-    def checkExisting(self):
+    def getAmounts(self):
+        query = "select amount from piggysaving"
+        value = ()
+        self._mycursor.execute(query, value)
+        results = self._mycursor.fetchall()
         numbers = set()
-        if os.path.exists(FILE):
-            rows = dict()
-            with open(FILE, 'r') as csvFile:
-                reader = csv.reader(csvFile, delimiter=' ', quotechar='|')
-                for row in reader:
-                    rows[row[0]] = row[1]
-                    numbers.add(int(float(row[1])*10))
-                if str(datetime.date.today()) in rows:
-                    del rows[str(datetime.date.today())]
-
-            with open(FILE, 'w')  as csvFile:
-                writer = csv.writer(csvFile, delimiter=' ')
-                for key in rows:
-                    writer.writerow([key, rows[key]])
-
+        for result in results:
+            numbers.add(result[0])
         return numbers
 
     def retrieveAll(self):
         rows = dict()
-        if os.path.exists(FILE):
-            with open(FILE, 'r') as csvFile:
-                reader = csv.reader(csvFile, delimiter=' ', quotechar='|')
-                for row in reader:
-                    rows[row[0]] = row[1]
-
+        query = "select savingDate, amount from piggysaving"
+        value = ()
+        self._mycursor.execute(query, value)
+        results = self._mycursor.fetchall()
+        for result in results:
+            rows[result[0]] = result[1]
         return rows
 
     def sum(self):
         sum = 0
-        if os.path.exists(FILE):
-            with open(FILE, 'r') as csvFile:
-                reader = csv.reader(csvFile, delimiter=' ', quotechar='|')
-                for row in reader:
-                    sum += float(row[1])
+        allAmounts = self.getAmounts()
+        for num in allAmounts:
+            sum += num
         return sum
 
     def writeNew(self):
-        numbers = self.checkExisting()
+        numbers = self.getAmounts()
         if len(numbers) == 365:
             exit()
         currentNum = int()
         while True:
             currentNum = random.randrange(1, RANGE_MAX)
-            if not currentNum in numbers:
+            currentNumReal = float(currentNum) / 10
+            if not currentNumReal in numbers:
                 break
-        if os.path.exists(FILE):
-            mode = 'a'
-        else:
-            mode = 'w'
-        with open(FILE, mode) as csvFile:
-            writer = csv.writer(csvFile, delimiter=' ',
-                                quotechar='|', quoting=csv.QUOTE_MINIMAL)
-            writer.writerow([datetime.date.today(), str(float(currentNum)/10)])
+
+        query = "insert into piggysaving (savingDate, amount) values (%s, %s) on duplicate key update amount=%s"
+        value = (str(datetime.date.today()), currentNumReal, currentNumReal)
+        self._mycursor.execute(query, value)
+        self._mydb.commit()
 
         return currentNum
