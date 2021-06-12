@@ -27,18 +27,18 @@ app.add_middleware(
 sav = Saving()
 
 @app.get("/roll")
-def roll():
+async def roll():
     num = sav.writeNew()
-    return {"newNum": float(num)/10}
+    return {"newNum": float(num)}
 
 @app.get("/all")
-def getAll():
+async def getAll():
     return sav.retrieveAll()
 
 @app.get("/sum")
-def getSum():
+async def getSum():
     return {"sum": sav.sum()}
 
 @app.get("/last")
-def getLast():
+async def getLast():
     return {"last": sav.getLast()}

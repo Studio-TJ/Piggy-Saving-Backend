@@ -37,7 +37,7 @@ class Saving():
     def retrieveAll(self):
         db = self.__connectDb()
         rows = dict()
-        query = "select savingDate, amount from piggysaving"
+        query = "select savingDate, amount, saved from piggysaving"
         value = ()
         db[1].execute(query, value)
         results = db[1].fetchall()
