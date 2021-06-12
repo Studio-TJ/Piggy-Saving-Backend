@@ -7,6 +7,7 @@ import datetime
 import mysql.connector as sql
 
 RANGE_MAX = 365
+RATIO = 10
 class Saving():
     def __init__(self):
         self._last = 0
@@ -41,7 +42,7 @@ class Saving():
         db[1].execute(query, value)
         results = db[1].fetchall()
         for result in results:
-            rows[result[0]] = {"date":result[0], "amount":result[1]}
+            rows[result[0]] = {"date":result[0], "amount":result[1], "saved":result[2]}
 
         db[0].close()
         return rows
@@ -63,13 +64,13 @@ class Saving():
         self._last = int()
         while True:
             self._last = random.randrange(1, RANGE_MAX)
-            self._last = float(self._last) / 10
+            self._last = float(self._last) / RATIO
             if not self._last in numbers:
                 break
 
         db = self.__connectDb()
-        query = "insert into piggysaving (savingDate, amount) values (%s, %s) on duplicate key update amount=%s"
-        value = (str(datetime.date.today()), self._last, self._last)
+        query = "insert into piggysaving (savingDate, amount, saved) values (%s, %s, %s) on duplicate key update amount=%s"
+        value = (str(datetime.date.today()), self._last, False, self._last)
         db[1].execute(query, value)
         db[0].commit()
         db[0].close()
