@@ -38,3 +38,7 @@ def getAll():
 @app.get("/sum")
 def getSum():
     return {"sum": sav.sum()}
+
+@app.get("/last")
+def getLast():
+    return {"last": sav.getLast()}
