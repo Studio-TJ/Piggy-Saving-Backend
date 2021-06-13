@@ -1,10 +1,8 @@
 #!/usr/bin/python3
-from typing import Optional
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-# import .saving
 from saving import Saving
+from saving import Item
 
 app = FastAPI()
 
@@ -41,4 +39,8 @@ async def getSum():
 
 @app.get("/last")
 async def getLast():
-    return {"last": sav.getLast()}
+    return {"last": sav.retrieveLast()}
+
+@app.post("/save")
+async def updateSaved(item: Item):
+    return sav.updateSaved(item)
