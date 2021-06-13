@@ -9,8 +9,8 @@ import subprocess
 
 RANGE_MAX = 365
 RATIO = 10
-MAIL_TO = "info@jamesvillage.dev"
-MAIL_FROM= "james77676166@gmail.com"
+MAIL_TO = ""
+MAIL_FROM = ""
 
 class Item(BaseModel):
     date: str
@@ -36,6 +36,8 @@ class Saving():
 
     @staticmethod
     def mail():
+        if MAIL_FROM == "" or MAIL_TO == "":
+            return
         db = Saving.__connectDb()
         query = "select savingDate, amount, saved from piggysaving where saved = 0"
         value = ()
