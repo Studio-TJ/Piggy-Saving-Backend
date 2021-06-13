@@ -1,9 +1,11 @@
 [Unit]
-Description=Cleaning service
+Description=:Piggy saving backend service
 
 [Service]
 Type=simple
-WorkingDirectory=/home/tianyu/workspace/saving/backend
+User=
+Group=
+WorkingDirectory=
 ExecStart=/usr/bin/python3 -m uvicorn restserver:app --reload --port 8880
 
 [Install]
