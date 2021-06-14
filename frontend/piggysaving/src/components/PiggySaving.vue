@@ -9,19 +9,24 @@
     <h2>这里是现在存的钱 €{{sum}}</h2>
     <h3>今天要存的钱 €{{last}}</h3>
     <n-button @click="rollAgain">今天要存的钱太多了，再Roll一次吧</n-button>
+    <v-card elevation="2"></v-card>
     <div>
-      <!-- {{items.amount}} -->
-      <n-table :bordered="false" :single-line="false">
+      <n-table :bordered="false" :single-line="false" background="#B0757C">
         <thead>
           <tr>
             <th>日期</th>
             <th>金额</th>
+            <th>今天存了吗？</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="items in allData" :key="items.date">
             <td>{{items.date}}</td>
             <td>{{items.amount}}</td>
+            <td>
+              <n-button disabled type="success" v-if="items.saved===1">今天存过了</n-button>
+              <n-button type="error" v-if="items.saved===0" @click="updateSaved(items.date, true)">今天还没存，现在存</n-button>
+            </td>
           </tr>
         </tbody>
       </n-table>
@@ -30,6 +35,7 @@
 </template>
 
 <script lang="ts">
+import '../assets/styles/global.css'
 import { ref, defineComponent } from 'vue'
 import ax from 'axios'
 import { NButton } from 'naive-ui'
@@ -39,7 +45,8 @@ export const axios = ax
 export default defineComponent({
   components: {
     NButton,
-    NTable
+    NTable,
+
   },
   name: 'HelloWorld',
   props: {
@@ -55,18 +62,17 @@ export default defineComponent({
     this.sum = 0
     this.last = 0
     axios
-      .get('https://saving.jamesvillage.dev/all')
+      .get(document.location.origin + '/all')
       .then(response => {
-        const { date, amount } = response.data;
         this.allData = response.data;
       })
     axios
-      .get('https://saving.jamesvillage.dev/sum')
+      .get(document.location.origin + '/sum')
       .then(response => {
         this.sum = response.data.sum;
       })
     axios
-      .get('https://saving.jamesvillage.dev/last')
+      .get(document.location.origin + '/last')
       .then(response => {
         this.last = response.data.last;
       })
@@ -75,30 +81,36 @@ export default defineComponent({
   },
   methods: {
     rollAgain: function () {
-      axios.get("https://saving.jamesvillage.dev/roll")
+      axios.get(document.location.origin + '/roll')
       window.location.reload();
     },
     getAll: function() {
       axios
-        .get('https://saving.jamesvillage.dev/all')
+        .get(document.location.origin + '/all')
         .then(response => {
-          const { date, amount } = response.data;
           this.allData = response.data;
         })
     },
     getSum: function() {
       axios
-        .get('https://saving.jamesvillage.dev/sum')
+        .get(document.location.origin + '/sum')
         .then(response => {
           this.sum = response.data.sum;
         })
     },
     getLast: function() {
       axios
-        .get('https://saving.jamesvillage.dev/last')
+        .get(document.location.origin + '/last')
         .then(response => {
           this.last = response.data.last;
         })
+    },
+    updateSaved: function( date:String, saved:boolean ) {
+      axios.post(document.location.origin + '/save', {
+          date: date,
+          saved: saved
+        })
+      window.location.reload();
     }
   }
 })

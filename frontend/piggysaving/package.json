@@ -6,8 +6,8 @@
     "preview": "vite preview --port 8881"
   },
   "dependencies": {
+    "v-calendar": "next",
     "axios": "^0.21.1",
-    "lodash": "^4.17.21",
     "naive-ui": "^2.11.6",
     "vfonts": "^0.1.0",
     "vicons": "^0.0.1",
