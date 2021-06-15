@@ -6,6 +6,7 @@
     "preview": "vite preview --port 8881"
   },
   "dependencies": {
+    "@popperjs/core": "^2.9.2",
     "axios": "^0.21.1",
     "mobile-device-detect": "^0.4.3",
     "naive-ui": "^2.11.6",

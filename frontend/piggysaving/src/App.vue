@@ -1,16 +1,25 @@
 <template>
   <!-- <img alt="Vue logo" src="./assets/piggy.svg" /> -->
-  <PiggySaving msg="猪猪存钱计划" />
+  <PiggySavingMobile v-if="isMobile" />
+  <PiggySaving v-if="!isMobile" msg="猪猪存钱计划" />
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
 import PiggySaving from './components/PiggySaving.vue'
+import PiggySavingMobile from './components/PiggySavingMobile.vue'
+import { isMobile } from 'mobile-device-detect';
 
 export default defineComponent({
   name: 'App',
   components: {
-    PiggySaving
+    PiggySaving,
+    PiggySavingMobile
+  },
+  data() {
+    return {
+      isMobile: isMobile
+    }
   }
 })
 </script>

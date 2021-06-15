@@ -11,8 +11,8 @@
           <n-button round disabled v-if="todaySaved===1">
             今天存过啦
           </n-button>
-          <n-button round v-if="todaySaved===0">
-            存钱
+          <n-button disabled round v-if="todaySaved===0">
+            这个按钮现在坏了
           </n-button>
     </n-button-group>
   </div>

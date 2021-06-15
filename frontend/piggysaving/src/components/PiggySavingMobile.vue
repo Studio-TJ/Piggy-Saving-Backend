@@ -3,18 +3,14 @@
   <h2>测式123</h2> -->
   <!-- <pre>{{allData}}</pre> -->
   <!-- <p>{{allData}}</p> -->
-  <div id="piggysaving" class='backgroundbox'>
-    <header-component/>
-    <div id='piggyImage'>
-      <img alt="Vue logo" src="../assets/piggy.svg" />
-    </div>
-    <div id='currentSavingBox'>
-      <current-saving-component :currentSaving=sum />
-    </div>
-    <div id='todaySavingBox'>
-      <today-saving-component :todaySaving=last :todaySaved=lastSaved />
-    </div>
-    <div id='table'>
+  <div id="piggysaving">
+    <img alt="Vue logo" src="../assets/piggy.svg" />
+    <h1>猪猪存钱计划</h1>
+    <h2>这里是现在存的钱 €{{sum}}</h2>
+    <h3>今天要存的钱 €{{last}}</h3>
+    <n-button @click="rollAgain">今天要存的钱太多了，再Roll一次吧</n-button>
+    <v-card elevation="2"></v-card>
+    <div>
       <n-table :bordered="false" :single-line="false" background="#B0757C">
         <thead>
           <tr>
@@ -35,42 +31,29 @@
         </tbody>
       </n-table>
     </div>
-    <div id='dateCalendar'>
-      <dates/>
-    </div>
   </div>
 </template>
 
 <script lang="ts">
 import '../assets/styles/global.css'
-import { defineComponent } from 'vue'
+import { ref, defineComponent } from 'vue'
 import ax from 'axios'
 import { NButton } from 'naive-ui'
 import { NTable } from 'naive-ui'
-import CurrentSavingComponent from './CurrentSaving.vue'
-import TodaySavingComponent from './TodaySaving.vue'
-import HeaderComponent from './HeaderComponent.vue'
-import Dates from './Dates.vue'
-
 export const axios = ax
 export default defineComponent({
   components: {
     NButton,
     NTable,
-    CurrentSavingComponent,
-    HeaderComponent,
-    TodaySavingComponent,
-    Dates
   },
-  name: 'PiggySaving',
+  name: 'HelloWorld',
   props: {
   },
   data() {
     return {
       allData: Array(),
       sum: 0,
-      last: 0,
-      lastSaved :0,
+      last: 0
     }
   },
   mounted () {
@@ -95,6 +78,10 @@ export default defineComponent({
   setup: () => {
   },
   methods: {
+    rollAgain: function () {
+      axios.get(document.location.origin + '/roll')
+      window.location.reload();
+    },
     getAll: function() {
       axios
         .get(document.location.origin + '/all')
@@ -128,45 +115,17 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.backgroundbox {
-  background: #FFFFFF;
-  box-shadow: 30px 30px 40px rgba(0, 0, 0, 0.25);
-  border-radius: 60px;
-  position: absolute;
-  width: 90%;
-  height: 120vh;
-  left: 50%;
-  transform: translate3d(-50%,0, 0);
+a {
+  color: #42b983;
 }
-#piggyImage {
-  position: absolute;
-  width: 30%;
-  /* height: 25vw; */
-  left: 10%;
-  top: 15%;
-
-
+label {
+  margin: 0 0.5em;
+  font-weight: bold;
 }
-#currentSavingBox
-{
-  position: absolute;
-  right: 18%;
-  top: 20%;
-}
-#todaySavingBox
-{
-  position: absolute;
-  left: 10%;
-  /* top: 100%; */
-  bottom: 5%;
-}
-#dateCalendar {
-  position: absolute;
-  right: 2%;
-  bottom: 20%;
-}
-#table {
-  position: absolute;
-  bottom: -30%;
+code {
+  background-color: #eee;
+  padding: 2px 4px;
+  border-radius: 4px;
+  color: #304455;
 }
 </style>
