@@ -1,16 +1,16 @@
 <template>
   <!-- <img alt="Vue logo" src="./assets/piggy.svg" /> -->
-  <HelloWorld msg="猪猪存钱计划" />
+  <PiggySaving msg="猪猪存钱计划" />
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import HelloWorld from './components/PiggySaving.vue'
+import PiggySaving from './components/PiggySaving.vue'
 
 export default defineComponent({
   name: 'App',
   components: {
-    HelloWorld
+    PiggySaving
   }
 })
 </script>
