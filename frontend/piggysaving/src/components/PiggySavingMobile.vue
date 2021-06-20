@@ -8,7 +8,7 @@
     <h1>猪猪存钱计划</h1>
     <h2>这里是现在存的钱 €{{sum}}</h2>
     <h3>今天要存的钱 €{{last}}</h3>
-    <n-button @click="rollAgain">今天要存的钱太多了，再Roll一次吧</n-button>
+    <n-button v-if="lastSaved===0" @click="rollAgain">今天要存的钱太多了，再Roll一次吧</n-button>
     <v-card elevation="2"></v-card>
     <div>
       <n-table :bordered="false" :single-line="false" background="#B0757C">
@@ -53,14 +53,17 @@ export default defineComponent({
     return {
       allData: Array(),
       sum: 0,
-      last: 0
+      last: 0,
+      lastSaved :0
     }
   },
   mounted () {
     this.sum = 0
     this.last = 0
     axios
-      .get(document.location.origin + '/all')
+      .post(document.location.origin + '/all', {
+          desc: true
+        })
       .then(response => {
         this.allData = response.data;
       })
@@ -72,7 +75,8 @@ export default defineComponent({
     axios
       .get(document.location.origin + '/last')
       .then(response => {
-        this.last = response.data.last;
+        this.last = response.data.last.amount;
+        this.lastSaved = response.data.last.saved;
       })
   },
   setup: () => {
@@ -84,7 +88,9 @@ export default defineComponent({
     },
     getAll: function() {
       axios
-        .get(document.location.origin + '/all')
+        .post(document.location.origin + '/all', {
+          desc: true
+        })
         .then(response => {
           this.allData = response.data;
         })
@@ -100,7 +106,8 @@ export default defineComponent({
       axios
         .get(document.location.origin + '/last')
         .then(response => {
-          this.last = response.data.last;
+          this.last = response.data.last.amount;
+          this.lastSaved = response.data.last.saved;
         })
     },
     updateSaved: function( date:String, saved:boolean ) {
