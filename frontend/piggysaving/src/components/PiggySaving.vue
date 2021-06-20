@@ -91,7 +91,8 @@ export default defineComponent({
     axios
       .get(document.location.origin + '/last')
       .then(response => {
-        this.last = response.data.last;
+        this.last = response.data.last.amount;
+        this.lastSaved = response.data.last.saved;
       })
   },
   setup: () => {
@@ -117,7 +118,8 @@ export default defineComponent({
       axios
         .get(document.location.origin + '/last')
         .then(response => {
-          this.last = response.data.last;
+          this.last = response.data.last.amount;
+          this.lastSaved = response.data.last.saved;
         })
     },
     updateSaved: function( date:String, saved:boolean ) {

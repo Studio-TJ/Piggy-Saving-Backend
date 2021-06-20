@@ -20,7 +20,7 @@ class RetrieveAllItem(BaseModel):
     desc: bool
 class Saving():
     def __init__(self):
-        self._last = 0
+        self._last = {"amount":0, "saved":0}
         self._scheduler = BackgroundScheduler()
         self._scheduler.add_job(self.autoRoll, "cron", hour=1, minute=0)
         self._scheduler.add_job(Saving.mail, "cron", hour=22, minute=0)
@@ -107,7 +107,9 @@ class Saving():
         value = ()
         db[1].execute(query, value)
         result = db[1].fetchone()
-        self._last = result[1]
+        self._last['amount'] = result[1]
+        self._last['saved'] = result[2]
+        db[0].close()
         return self._last
 
     def updateSaved(self, item: Saved):

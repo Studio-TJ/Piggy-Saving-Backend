@@ -5,13 +5,16 @@
     <h3>€{{todaySaving}}</h3>
     <h2 :style="{top:'63%',width:'99%'}"></h2>
     <n-button-group id='TodayButton'>
-          <n-button round @click="rollAgain">
+          <n-button round @click="rollAgain" v-if="todaySaved===0">
             再roll一遍吧
+          </n-button>
+          <n-button round disabled @click="rollAgain" v-else>
+            今天存过了，不能再roll了
           </n-button>
           <n-button round disabled v-if="todaySaved===1">
             今天存过啦
           </n-button>
-          <n-button disabled round v-if="todaySaved===0">
+          <n-button disabled round v-else>
             这个按钮现在坏了
           </n-button>
     </n-button-group>
