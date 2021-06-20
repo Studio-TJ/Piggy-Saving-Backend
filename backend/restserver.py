@@ -2,7 +2,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from saving import Saving
-from saving import Item
+from saving import Saved, RetrieveAllItem
 
 app = FastAPI()
 
@@ -29,9 +29,9 @@ async def roll():
     num = sav.writeNew()
     return {"newNum": float(num)}
 
-@app.get("/all")
-async def getAll():
-    return sav.retrieveAll()
+@app.post("/all")
+async def getAll(item: RetrieveAllItem):
+    return sav.retrieveAll(item)
 
 @app.get("/sum")
 async def getSum():
@@ -42,5 +42,5 @@ async def getLast():
     return {"last": sav.retrieveLast()}
 
 @app.post("/save")
-async def updateSaved(item: Item):
+async def updateSaved(item: Saved):
     return sav.updateSaved(item)

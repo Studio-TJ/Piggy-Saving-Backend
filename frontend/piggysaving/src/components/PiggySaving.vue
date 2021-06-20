@@ -77,7 +77,9 @@ export default defineComponent({
     this.sum = 0
     this.last = 0
     axios
-      .get(document.location.origin + '/all')
+      .post(document.location.origin + '/all', {
+        desc: true
+      })
       .then(response => {
         this.allData = response.data;
       })
@@ -97,7 +99,9 @@ export default defineComponent({
   methods: {
     getAll: function() {
       axios
-        .get(document.location.origin + '/all')
+        .post(document.location.origin + '/all', {
+          desc: true
+        })
         .then(response => {
           this.allData = response.data;
         })
@@ -167,6 +171,7 @@ export default defineComponent({
 }
 #table {
   position: absolute;
-  bottom: -30%;
+  display: flex;
+  top: 100%;
 }
 </style>

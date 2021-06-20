@@ -12,9 +12,12 @@ RATIO = 10
 MAIL_TO = ""
 MAIL_FROM = ""
 
-class Item(BaseModel):
+class Saved(BaseModel):
     date: str
     saved: bool
+
+class RetrieveAllItem(BaseModel):
+    desc: bool
 class Saving():
     def __init__(self):
         self._last = 0
@@ -74,10 +77,14 @@ class Saving():
         db[0].close()
         return numbers
 
-    def retrieveAll(self):
+    def retrieveAll(self, desc : bool):
         db = Saving.__connectDb()
         rows = dict()
-        query = "select savingDate, amount, saved from piggysaving"
+        query = ""
+        if desc:
+            query = "select savingDate, amount, saved from piggysaving order by savingDate desc"
+        else:
+            query = "select savingDate, amount, saved from piggysaving"
         value = ()
         db[1].execute(query, value)
         results = db[1].fetchall()
@@ -96,14 +103,14 @@ class Saving():
 
     def retrieveLast(self):
         db = Saving.__connectDb()
-        query = "select savingDate, amount from piggysaving order by savingDate desc"
+        query = "select savingDate, amount, saved from piggysaving order by savingDate desc"
         value = ()
         db[1].execute(query, value)
         result = db[1].fetchone()
         self._last = result[1]
         return self._last
 
-    def updateSaved(self, item: Item):
+    def updateSaved(self, item: Saved):
         db = Saving.__connectDb()
         query = "insert into piggysaving (savingDate, amount, saved) values (%s, %s, %s) on duplicate key update saved=%s"
         value = (item.date, 0, True, True)
