@@ -1,0 +1,7 @@
+[mysqldump]
+user=piggysaving
+password=piggysaving
+
+[mysql]
+user=piggysaving
+password=piggysaving
