@@ -20,6 +20,3 @@ cd helper
 ./install.sh
 ```
 并按照提示安装即可。如果使用的是其它Linux发行版那么需要修改安装脚本。
-## Required python3 packages
-
-* fastapi
