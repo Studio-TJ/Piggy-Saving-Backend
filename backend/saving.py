@@ -107,7 +107,7 @@ class Saving():
         value = ()
         db[1].execute(query, value)
         result = db[1].fetchone()
-        self._last['amount'] = result[1]
+        self._last['amount'] = float(result[1])
         self._last['saved'] = result[2]
         db[0].close()
         return self._last
@@ -124,17 +124,17 @@ class Saving():
         numbers = self.getAmounts()
         if len(numbers) == 365:
             exit()
-        self._last = int()
+        last = int()
         while True:
-            self._last = random.randrange(1, RANGE_MAX)
-            self._last = float(self._last) / RATIO
-            if not self._last in numbers:
+            last = random.randrange(1, RANGE_MAX)
+            last = float(last) / RATIO
+            if not last in numbers:
                 break
 
         db = Saving.__connectDb()
         query = "insert into piggysaving (savingDate, amount, saved) values (%s, %s, %s) on duplicate key update amount=%s"
-        value = (str(datetime.date.today()), self._last, False, self._last)
+        value = (str(datetime.date.today()), last, False, last)
         db[1].execute(query, value)
         db[0].commit()
         db[0].close()
-        return self._last
+        return last
