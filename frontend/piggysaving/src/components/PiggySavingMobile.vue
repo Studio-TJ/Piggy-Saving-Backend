@@ -10,6 +10,22 @@
     <h3>今天要存的钱 €{{last}}</h3>
     <n-button v-if="lastSaved===0" @click="rollAgain">今天要存的钱太多了，再Roll一次吧</n-button>
     <v-card elevation="2"></v-card>
+    <div id='tableWithdraw'>
+      <n-table :bordered="false" :single-line="false" background="#B0757C">
+        <thead>
+          <tr>
+            <th>日期</th>
+            <th>取钱金额</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="items in allDataWithdrawn" :key="items.date">
+            <td>{{items.date}}</td>
+            <td>{{-items.amount}}</td>
+          </tr>
+        </tbody>
+      </n-table>
+    </div>
     <div>
       <n-table :bordered="false" :single-line="false" background="#B0757C">
         <thead>
@@ -52,6 +68,7 @@ export default defineComponent({
   data() {
     return {
       allData: Array(),
+      allDataWithdrawn: Array(),
       sum: 0,
       last: 0,
       lastSaved :0
@@ -62,10 +79,19 @@ export default defineComponent({
     this.last = 0
     axios
       .post(document.location.origin + '/all', {
-          desc: true
+          desc: true,
+          withdraw: false,
         })
       .then(response => {
         this.allData = response.data;
+      })
+    axios
+      .post(document.location.origin + '/all', {
+        desc: true,
+        withdraw: true,
+      })
+      .then(response => {
+        this.allDataWithdrawn = response.data;
       })
     axios
       .get(document.location.origin + '/sum')

@@ -16,8 +16,12 @@ class Saved(BaseModel):
     date: str
     saved: bool
 
+class Withdraw(BaseModel):
+    amount: float
+
 class RetrieveAllItem(BaseModel):
     desc: bool
+    withdraw: bool
 class Saving():
     def __init__(self):
         self._last = {"amount":0.0, "saved":0}
@@ -42,7 +46,7 @@ class Saving():
         if MAIL_FROM == "" or MAIL_TO == "":
             return
         db = Saving.__connectDb()
-        query = "select savingDate, amount, saved from piggysaving where saved = 0"
+        query = "select savingDate, amount, saved, sequence from piggysaving where saved = 0 and sequence = 0"
         value = ()
         db[1].execute(query, value)
         results = db[1].fetchall()
@@ -62,6 +66,17 @@ class Saving():
                          mailFrom,
                          mailTo], stdin=p1.stdout)
 
+    @staticmethod
+    def __getNumberOfExistingEntryByDate(date: str) -> int:
+        db = Saving.__connectDb()
+        query = "select count(*) from piggysaving where savingDate = %s"
+        value = (date,)
+        db[1].execute(query, value)
+        results = db[1].fetchall()
+        db[0].close()
+        # Retrieve how many entries already exist with the given date
+        return results[0][0]
+
     def autoRoll(self):
         self.writeNew()
 
@@ -77,14 +92,20 @@ class Saving():
         db[0].close()
         return numbers
 
-    def retrieveAll(self, desc : bool):
+    def retrieveAll(self, option : RetrieveAllItem):
         db = Saving.__connectDb()
         rows = dict()
         query = ""
-        if desc:
-            query = "select savingDate, amount, saved from piggysaving order by savingDate desc"
+        if option.desc:
+            if not option.withdraw:
+                query = "select savingDate, amount, saved from piggysaving where sequence = 0 order by savingDate desc"
+            else:
+                query = "select savingDate, amount, saved from piggysaving where sequence <> 0 order by savingDate desc"
         else:
-            query = "select savingDate, amount, saved from piggysaving"
+            if not option.withdraw:
+                query = "select savingDate, amount, saved from piggysaving where sequence = 0"
+            else:
+                query = "select savingDate, amount, saved from piggysaving where sequence <> 0"
         value = ()
         db[1].execute(query, value)
         results = db[1].fetchall()
@@ -103,7 +124,7 @@ class Saving():
 
     def retrieveLast(self):
         db = Saving.__connectDb()
-        query = "select savingDate, amount, saved from piggysaving order by savingDate desc"
+        query = "select savingDate, amount, saved from piggysaving where sequence = 0 order by savingDate desc"
         value = ()
         db[1].execute(query, value)
         result = db[1].fetchone()
@@ -114,8 +135,19 @@ class Saving():
 
     def updateSaved(self, item: Saved):
         db = Saving.__connectDb()
-        query = "insert into piggysaving (savingDate, amount, saved) values (%s, %s, %s) on duplicate key update saved=%s"
-        value = (item.date, 0, True, True)
+        query = "insert into piggysaving (savingDate, amount, saved, sequence) values (%s, %s, %s, %s) on duplicate key update saved=%s"
+        value = (item.date, 0, True, 0, True)
+        db[1].execute(query, value)
+        db[0].commit()
+        db[0].close()
+
+    def withdraw(self, item: Withdraw):
+        newSeq = Saving.__getNumberOfExistingEntryByDate(str(datetime.date.today()))
+        db = Saving.__connectDb()
+        if item.amount >= 0:
+            item.amount = -item.amount
+        query = "insert into piggysaving (savingDate, amount, saved, sequence) values (%s, %s, %s, %s)"
+        value = (str(datetime.date.today()), item.amount, 0, newSeq)
         db[1].execute(query, value)
         db[0].commit()
         db[0].close()
@@ -132,8 +164,8 @@ class Saving():
                 break
 
         db = Saving.__connectDb()
-        query = "insert into piggysaving (savingDate, amount, saved) values (%s, %s, %s) on duplicate key update amount=%s"
-        value = (str(datetime.date.today()), last, False, last)
+        query = "insert into piggysaving (savingDate, amount, saved, sequence) values (%s, %s, %s, %s) on duplicate key update amount=%s"
+        value = (str(datetime.date.today()), last, False, 0, last)
         db[1].execute(query, value)
         db[0].commit()
         db[0].close()

@@ -35,32 +35,55 @@
         </tbody>
       </n-table>
     </div>
+    <div id='tableWithdraw'>
+      <n-table :bordered="false" :single-line="false" background="#B0757C">
+        <thead>
+          <tr>
+            <th>日期</th>
+            <th>取钱金额</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="items in allDataWithdrawn" :key="items.date">
+            <td>{{items.date}}</td>
+            <td>{{-items.amount}}</td>
+          </tr>
+        </tbody>
+      </n-table>
+    </div>
     <div id='dateCalendar'>
       <dates/>
+    </div>
+    <div id='withdraw'>
+      <withdraw/>
     </div>
   </div>
 </template>
 
 <script lang="ts">
 import '../assets/styles/global.css'
-import { defineComponent } from 'vue'
+import { defineComponent, ref } from 'vue'
 import ax from 'axios'
 import { NButton } from 'naive-ui'
 import { NTable } from 'naive-ui'
+import { NInputNumber } from 'naive-ui'
 import CurrentSavingComponent from './CurrentSaving.vue'
 import TodaySavingComponent from './TodaySaving.vue'
 import HeaderComponent from './HeaderComponent.vue'
 import Dates from './Dates.vue'
+import Withdraw from './Withdraw.vue'
 
 export const axios = ax
 export default defineComponent({
   components: {
     NButton,
     NTable,
+    NInputNumber,
     CurrentSavingComponent,
     HeaderComponent,
     TodaySavingComponent,
-    Dates
+    Dates,
+    Withdraw
   },
   name: 'PiggySaving',
   props: {
@@ -68,6 +91,7 @@ export default defineComponent({
   data() {
     return {
       allData: Array(),
+      allDataWithdrawn: Array(),
       sum: 0,
       last: 0,
       lastSaved :0,
@@ -78,10 +102,19 @@ export default defineComponent({
     this.last = 0
     axios
       .post(document.location.origin + '/all', {
-        desc: true
+        desc: true,
+        withdraw: false,
       })
       .then(response => {
         this.allData = response.data;
+      })
+    axios
+      .post(document.location.origin + '/all', {
+        desc: true,
+        withdraw: true,
+      })
+      .then(response => {
+        this.allDataWithdrawn = response.data;
       })
     axios
       .get(document.location.origin + '/sum')
@@ -171,9 +204,20 @@ export default defineComponent({
   right: 2%;
   bottom: 20%;
 }
+#withdraw {
+  position: absolute;
+  right: 18%;
+  bottom: 60%;
+}
 #table {
   position: absolute;
   display: flex;
   top: 100%;
+}
+#tableWithdraw {
+  position: absolute;
+  display: flex;
+  top: 100%;
+  left: 50%
 }
 </style>

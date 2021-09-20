@@ -2,7 +2,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from saving import Saving
-from saving import Saved, RetrieveAllItem
+from saving import Saved, RetrieveAllItem, Withdraw
 
 app = FastAPI()
 
@@ -44,3 +44,7 @@ async def getLast():
 @app.post("/save")
 async def updateSaved(item: Saved):
     return sav.updateSaved(item)
+
+@app.post("/withdraw")
+async def withdraw(item: Withdraw):
+    return sav.withdraw(item)

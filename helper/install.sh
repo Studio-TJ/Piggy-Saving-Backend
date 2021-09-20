@@ -10,7 +10,7 @@ sudo mysql -e "CREATE USER IF NOT EXISTS 'piggysaving'@'localhost' IDENTIFIED BY
 sudo mysql -e "GRANT ALL PRIVILEGES ON piggysaving.* TO 'piggysaving'@'localhost';"
 sudo mysql -e "FLUSH PRIVILEGES"
 
-sudo mysql piggysaving -e "CREATE TABLE piggysaving(savingDate DATE, amount FLOAT, saved BOOLEAN, PRIMARY KEY (savingDate))"
+sudo mysql piggysaving -e "CREATE TABLE piggysaving(savingDate DATE, amount FLOAT, saved BOOLEAN, sequence INT, PRIMARY KEY (savingDate, sequence))"
 
 echo 'Enter mail address for mailing service, leave empty if you want to disable mailing service.'
 echo 'Enter the mail from address for mailing service:'
