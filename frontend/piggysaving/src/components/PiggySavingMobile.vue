@@ -9,6 +9,11 @@
     <h2>这里是现在存的钱 €{{sum}}</h2>
     <h3>今天要存的钱 €{{last}}</h3>
     <n-button v-if="lastSaved===0" @click="rollAgain">今天要存的钱太多了，再Roll一次吧</n-button>
+    <n-space>
+      <n-input-number v-model:value="withdraw" clearable />
+      <n-input v-model:value="description" type="text" placeholder="取钱说明"/>
+      <n-button type="warning" @click="executeWithdraw(withdraw, description)">取钱</n-button>
+    </n-space>
     <v-card elevation="2"></v-card>
     <div id='tableWithdraw'>
       <n-table :bordered="false" :single-line="false" background="#B0757C">
@@ -16,12 +21,14 @@
           <tr>
             <th>日期</th>
             <th>取钱金额</th>
+            <th>取钱原因</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="items in allDataWithdrawn" :key="items.date">
             <td>{{items.date}}</td>
             <td>{{-items.amount}}</td>
+            <td>{{items.description}}</td>
           </tr>
         </tbody>
       </n-table>
@@ -54,13 +61,16 @@
 import '../assets/styles/global.css'
 import { ref, defineComponent } from 'vue'
 import ax from 'axios'
-import { NButton } from 'naive-ui'
+import { NButton, NInputNumber, NInput, NSpace } from 'naive-ui'
 import { NTable } from 'naive-ui'
 export const axios = ax
 export default defineComponent({
   components: {
     NButton,
     NTable,
+    NInputNumber,
+    NInput,
+    NSpace
   },
   name: 'HelloWorld',
   props: {
@@ -105,7 +115,11 @@ export default defineComponent({
         this.lastSaved = response.data.last.saved;
       })
   },
-  setup: () => {
+  setup () {
+    return {
+      withdraw: ref(0),
+      description: ref("")
+    }
   },
   methods: {
     rollAgain: function () {
@@ -140,6 +154,13 @@ export default defineComponent({
       axios.post(document.location.origin + '/save', {
           date: date,
           saved: saved
+        })
+      window.location.reload();
+    },
+    executeWithdraw: function ( amount: any, description: any ) {
+      axios.post(document.location.origin + '/withdraw', {
+          amount: amount,
+          description: description
         })
       window.location.reload();
     }

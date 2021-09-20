@@ -1,13 +1,14 @@
 <template>
   <n-space>
     <n-input-number v-model:value="withdraw" clearable />
-    <n-button type="warning" @click="executeWithdraw(withdraw)">取钱</n-button>
+    <n-input v-model:value="description" type="text" placeholder="取钱说明"/>
+    <n-button type="warning" @click="executeWithdraw(withdraw, description)">取钱</n-button>
   </n-space>
 </template>
 
 <script lang='ts'>
 import { defineComponent, ref } from 'vue'
-import { NInputNumber, NButton, NSpace } from 'naive-ui';
+import { NInputNumber, NButton, NSpace, NInput } from 'naive-ui';
 import ax from 'axios'
 
 export const axios = ax
@@ -15,18 +16,21 @@ export default defineComponent({
   name: 'Withdraw',
   components: {
     NInputNumber,
+    NInput,
     NButton,
     NSpace
   },
   setup () {
     return {
-      withdraw: ref(0)
+      withdraw: ref(0),
+      description: ref("")
     }
   },
   methods: {
-    executeWithdraw: function ( amount: any ) {
+    executeWithdraw: function ( amount: any, description: any ) {
       axios.post(document.location.origin + '/withdraw', {
-          amount: amount
+          amount: amount,
+          description: description
         })
       window.location.reload();
     }

@@ -18,10 +18,17 @@ class Saved(BaseModel):
 
 class Withdraw(BaseModel):
     amount: float
+    description: str
 
 class RetrieveAllItem(BaseModel):
     desc: bool
     withdraw: bool
+
+class SavingItems(BaseModel):
+    date: str
+    amount: str
+    saved: bool
+
 class Saving():
     def __init__(self):
         self._last = {"amount":0.0, "saved":0}
@@ -92,6 +99,16 @@ class Saving():
         db[0].close()
         return numbers
 
+    @staticmethod
+    def __buildSavingItems(result) -> SavingItems:
+        resultRaw = {
+            'date': str(result[0]),
+            'amount': result[1],
+            'saved': result[2]
+        }
+        items = SavingItems(**resultRaw)
+        return items
+
     def retrieveAll(self, option : RetrieveAllItem):
         db = Saving.__connectDb()
         rows = dict()
@@ -100,19 +117,25 @@ class Saving():
             if not option.withdraw:
                 query = "select savingDate, amount, saved from piggysaving where sequence = 0 order by savingDate desc"
             else:
-                query = "select savingDate, amount, saved from piggysaving where sequence <> 0 order by savingDate desc"
+                query = "select savingDate, amount, description from piggysaving where sequence <> 0 order by savingDate desc"
         else:
             if not option.withdraw:
                 query = "select savingDate, amount, saved from piggysaving where sequence = 0"
             else:
-                query = "select savingDate, amount, saved from piggysaving where sequence <> 0"
+                query = "select savingDate, amount, description from piggysaving where sequence <> 0"
         value = ()
         db[1].execute(query, value)
         results = db[1].fetchall()
-        for result in results:
-            rows[result[0]] = {"date":result[0], "amount":result[1], "saved":result[2]}
-
+        seq = 0
         db[0].close()
+        items = []
+        for result in results:
+            if option.withdraw:
+                rows[str(result[0]) + str(seq)] = {"date":result[0], "amount":result[1], "description":result[2]}
+            else:
+                rows[str(result[0]) + str(seq)] = {"date":result[0], "amount":result[1], "saved":result[2]}
+                # items.append(Saving.__buildSavingItems(result))
+            seq += 1
         return rows
 
     def sum(self):
@@ -146,8 +169,8 @@ class Saving():
         db = Saving.__connectDb()
         if item.amount >= 0:
             item.amount = -item.amount
-        query = "insert into piggysaving (savingDate, amount, saved, sequence) values (%s, %s, %s, %s)"
-        value = (str(datetime.date.today()), item.amount, 0, newSeq)
+        query = "insert into piggysaving (savingDate, amount, saved, sequence, description) values (%s, %s, %s, %s, %s)"
+        value = (str(datetime.date.today()), item.amount, 0, newSeq, item.description)
         db[1].execute(query, value)
         db[0].commit()
         db[0].close()

@@ -14,6 +14,13 @@
     <div id='todaySavingBox'>
       <today-saving-component :todaySaving=last :todaySaved=lastSaved />
     </div>
+    <!-- <div id='table'>
+      <n-data-table
+        :columns="savingColumns"
+        :data="allData"
+        :pagination="pagination"
+        :single-line="false" />
+    </div> -->
     <div id='table'>
       <n-table :bordered="false" :single-line="false" background="#B0757C">
         <thead>
@@ -41,12 +48,14 @@
           <tr>
             <th>日期</th>
             <th>取钱金额</th>
+            <th>取钱原因</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="items in allDataWithdrawn" :key="items.date">
             <td>{{items.date}}</td>
             <td>{{-items.amount}}</td>
+            <td>{{items.description}}</td>
           </tr>
         </tbody>
       </n-table>
@@ -62,10 +71,10 @@
 
 <script lang="ts">
 import '../assets/styles/global.css'
-import { defineComponent, ref } from 'vue'
+import { defineComponent, h } from 'vue'
 import ax from 'axios'
 import { NButton } from 'naive-ui'
-import { NTable } from 'naive-ui'
+import { NTable, NDataTable } from 'naive-ui'
 import { NInputNumber } from 'naive-ui'
 import CurrentSavingComponent from './CurrentSaving.vue'
 import TodaySavingComponent from './TodaySaving.vue'
@@ -78,6 +87,7 @@ export default defineComponent({
   components: {
     NButton,
     NTable,
+    NDataTable,
     NInputNumber,
     CurrentSavingComponent,
     HeaderComponent,
@@ -95,6 +105,40 @@ export default defineComponent({
       sum: 0,
       last: 0,
       lastSaved :0,
+      // savingColumns: [
+      //   {
+      //     title: '日期',
+      //     key: 'date'
+      //   },
+      //   {
+      //     title: '金额',
+      //     key: 'amount'
+      //   },
+      //   {
+      //     title: '今天存了吗？',
+      //     key: 'saved',
+      //     render (row: any) {
+      //       return h(
+      //         NButton,
+      //         {
+      //           size: 'small',
+      //           onClick: () => {
+      //             axios.post(document.location.origin + '/save', {
+      //                 date: row.date,
+      //                 saved: true
+      //               })
+      //             window.location.reload();
+      //           },
+      //           disabled: true,
+      //           v-if: row.saved
+      //         },
+      //       )
+      //     }
+      //   }
+      // ],
+      pagination: {
+        pagSize: 10
+      }
     }
   },
   mounted () {
@@ -206,7 +250,7 @@ export default defineComponent({
 }
 #withdraw {
   position: absolute;
-  right: 18%;
+  right: 10%;
   bottom: 60%;
 }
 #table {
