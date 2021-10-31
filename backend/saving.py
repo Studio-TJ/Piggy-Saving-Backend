@@ -139,10 +139,13 @@ class Saving():
         return rows
 
     def sum(self):
-        sum = 0
-        allAmounts = self.getAmounts()
-        for num in allAmounts:
-            sum += num
+        db = Saving.__connectDb()
+        query = "select sum(amount) from piggysaving"
+        value = ()
+        db[1].execute(query, value)
+        result = db[1].fetchone()
+        sum = result[0]
+        db[0].close()
         return round(sum, 2)
 
     def retrieveLast(self):
