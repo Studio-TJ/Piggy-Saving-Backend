@@ -20,6 +20,9 @@ class Withdraw(BaseModel):
     amount: float
     description: str
 
+class Invest(BaseModel):
+    amount: float
+    description: str
 class RetrieveAllItem(BaseModel):
     desc: bool
     withdraw: bool
@@ -140,11 +143,41 @@ class Saving():
 
     def sum(self):
         db = Saving.__connectDb()
-        query = "select sum(amount) from piggysaving"
+        query = "select sum(amount) from piggysaving where saved = 1"
         value = ()
         db[1].execute(query, value)
         result = db[1].fetchone()
         sum = result[0]
+        db[0].close()
+        return round(sum, 2)
+
+    def sumAll(self):
+        db = Saving.__connectDb()
+        query = "select sum(amount) from piggysaving where sequence = 0"
+        value = ()
+        db[1].execute(query, value)
+        result = db[1].fetchone()
+        sum = result[0]
+        db[0].close()
+        return round(sum, 2)
+
+    def sumInvested(self):
+        db = Saving.__connectDb()
+        query = "select sum(amount) from piggysaving where sequence = 99"
+        value = ()
+        db[1].execute(query, value)
+        result = db[1].fetchone()
+        sum = -result[0]
+        db[0].close()
+        return round(sum, 2)
+
+    def used(self):
+        db = Saving.__connectDb()
+        query = "select sum(amount) from piggysaving where sequence != 0 and sequence != 99"
+        value = ()
+        db[1].execute(query, value)
+        result = db[1].fetchone()
+        sum = -result[0]
         db[0].close()
         return round(sum, 2)
 
@@ -173,10 +206,35 @@ class Saving():
         if item.amount >= 0:
             item.amount = -item.amount
         query = "insert into piggysaving (savingDate, amount, saved, sequence, description) values (%s, %s, %s, %s, %s)"
-        value = (str(datetime.date.today()), item.amount, 0, newSeq, item.description)
+        value = (str(datetime.date.today()), item.amount, 1, newSeq, item.description)
         db[1].execute(query, value)
         db[0].commit()
         db[0].close()
+
+    def invest(self, item: Invest):
+        db = Saving.__connectDb()
+        if item.amount >= 0:
+            item.amount = -item.amount
+        query = "insert into piggysaving (savingDate, amount, saved, sequence, description) values (%s, %s, %s, %s, %s)"
+        value = (str(datetime.date.today()), item.amount, 1, 99, item.description)
+        db[1].execute(query, value)
+        db[0].commit()
+        db[0].close()
+
+    def invested(self):
+        db = Saving.__connectDb()
+        rows = dict()
+        query = "select savingDate, amount, description from piggysaving where sequence = 99 order by savingDate desc"
+        value = ()
+        db[1].execute(query, value)
+        results = db[1].fetchall()
+        seq = 0
+        db[0].close()
+        items = []
+        for result in results:
+            rows[str(result[0])] = {"date":result[0], "amount":result[1], "description":result[2]}
+
+        return rows
 
     def writeNew(self):
         numbers = self.getAmounts()

@@ -2,7 +2,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from saving import Saving
-from saving import Saved, RetrieveAllItem, Withdraw
+from saving import Saved, RetrieveAllItem, Withdraw, Invest
 
 app = FastAPI()
 
@@ -37,6 +37,18 @@ async def getAll(item: RetrieveAllItem):
 async def getSum():
     return {"sum": sav.sum()}
 
+@app.get("/sumAll")
+async def getSum():
+    return {"sumAll": sav.sumAll()}
+
+@app.get("/sumInvested")
+async def getSumInvested():
+    return {"sumInvested": sav.sumInvested()}
+
+@app.get("/used")
+async def getSum():
+    return {"used": sav.used()}
+
 @app.get("/last")
 async def getLast():
     return {"last": sav.retrieveLast()}
@@ -48,3 +60,11 @@ async def updateSaved(item: Saved):
 @app.post("/withdraw")
 async def withdraw(item: Withdraw):
     return sav.withdraw(item)
+
+@app.post("/invest")
+async def invest(item: Invest):
+    return sav.invest(item)
+
+@app.get("/invested")
+async def invested():
+    return sav.invested()
