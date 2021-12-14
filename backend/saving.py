@@ -120,12 +120,12 @@ class Saving():
             if not option.withdraw:
                 query = "select savingDate, amount, saved from piggysaving where sequence = 0 order by savingDate desc"
             else:
-                query = "select savingDate, amount, description from piggysaving where sequence <> 0 order by savingDate desc"
+                query = "select savingDate, amount, description from piggysaving where sequence <> 0 and sequence <> 99 order by savingDate desc"
         else:
             if not option.withdraw:
                 query = "select savingDate, amount, saved from piggysaving where sequence = 0"
             else:
-                query = "select savingDate, amount, description from piggysaving where sequence <> 0"
+                query = "select savingDate, amount, description from piggysaving where sequence <> 0 and sequence <> 99"
         value = ()
         db[1].execute(query, value)
         results = db[1].fetchall()

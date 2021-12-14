@@ -9,7 +9,7 @@
       <img alt="Vue logo" src="../assets/piggy.svg" />
     </div>
     <div id='currentSavingBox'>
-      <current-saving-component :currentSaving=sum />
+      <current-saving-component :currentSaving=sum :savingAll=sumAll :used=used :invested=sumInvested />
     </div>
     <div id='todaySavingBox'>
       <today-saving-component :todaySaving=last :todaySaved=lastSaved />
@@ -60,9 +60,27 @@
         </tbody>
       </n-table>
     </div>
-    <div id='dateCalendar'>
-      <dates/>
+    <div id='tableInvested'>
+      <n-table :bordered="false" :single-line="false" background="#B0757C">
+        <thead>
+          <tr>
+            <th>日期</th>
+            <th>投资金额</th>
+            <th>投资目标</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="items in allDataInvested" :key="items.date">
+            <td>{{items.date}}</td>
+            <td>{{-items.amount}}</td>
+            <td>{{items.description}}</td>
+          </tr>
+        </tbody>
+      </n-table>
     </div>
+    <!-- <div id='dateCalendar'>
+      <dates/>
+    </div> -->
     <div id='withdraw'>
       <withdraw/>
     </div>
@@ -102,7 +120,11 @@ export default defineComponent({
     return {
       allData: Array(),
       allDataWithdrawn: Array(),
+      allDataInvested: Array(),
       sum: 0,
+      sumAll: 0,
+      used: 0,
+      sumInvested: 0,
       last: 0,
       lastSaved :0,
       // savingColumns: [
@@ -164,6 +186,26 @@ export default defineComponent({
       .get(document.location.origin + '/sum')
       .then(response => {
         this.sum = response.data.sum;
+      })
+    axios
+      .get(document.location.origin + '/sumAll')
+      .then(response => {
+        this.sumAll = response.data.sumAll;
+      })
+    axios
+      .get(document.location.origin + '/sumInvested')
+      .then(response => {
+        this.sumInvested = response.data.sumInvested;
+      })
+    axios
+      .get(document.location.origin + '/used')
+      .then(response => {
+        this.used = response.data.used;
+      })
+    axios
+      .get(document.location.origin + '/invested')
+      .then(response => {
+        this.allDataInvested = response.data;
       })
     axios
       .get(document.location.origin + '/last')
@@ -251,7 +293,7 @@ export default defineComponent({
 #withdraw {
   position: absolute;
   right: 10%;
-  bottom: 60%;
+  bottom: 40%;
 }
 #table {
   position: absolute;
@@ -262,6 +304,12 @@ export default defineComponent({
   position: absolute;
   display: flex;
   top: 100%;
-  left: 50%
+  left: 30%
+}
+#tableInvested {
+  position: absolute;
+  display: flex;
+  top: 100%;
+  left: 65%
 }
 </style>

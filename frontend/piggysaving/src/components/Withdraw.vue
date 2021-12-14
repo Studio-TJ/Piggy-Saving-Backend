@@ -4,6 +4,11 @@
     <n-input v-model:value="description" type="text" placeholder="取钱说明"/>
     <n-button type="warning" @click="executeWithdraw(withdraw, description)">取钱</n-button>
   </n-space>
+  <n-space>
+    <n-input-number v-model:value="invest" clearable />
+    <n-input v-model:value="description" type="text" placeholder="投资目标"/>
+    <n-button type="warning" @click="executeInvest(invest, description)">投资</n-button>
+  </n-space>
 </template>
 
 <script lang='ts'>
@@ -23,12 +28,20 @@ export default defineComponent({
   setup () {
     return {
       withdraw: ref(0),
+      invest: ref(0),
       description: ref("")
     }
   },
   methods: {
     executeWithdraw: function ( amount: any, description: any ) {
       axios.post(document.location.origin + '/withdraw', {
+          amount: amount,
+          description: description
+        })
+      window.location.reload();
+    },
+    executeInvest: function ( amount: any, description: any ) {
+      axios.post(document.location.origin + '/invest', {
           amount: amount,
           description: description
         })
