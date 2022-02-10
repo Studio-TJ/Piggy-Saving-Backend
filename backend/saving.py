@@ -2,6 +2,7 @@
 
 import random
 import datetime
+from sre_constants import RANGE
 import mysql.connector as sql
 from pydantic import BaseModel
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -96,14 +97,16 @@ class Saving():
 
     def getAmounts(self):
         db = Saving.__connectDb()
-        query = "select amount from piggysaving"
+        query = "select amount from piggysaving where amount > 0 order by savingDate desc"
         value = ()
         db[1].execute(query, value)
         results = db[1].fetchall()
-        numbers = set()
+        numbers = []
         for result in results:
-            numbers.add(result[0])
+            numbers.append(result[0])
         db[0].close()
+        numCycle = int(len(numbers) / 365)
+        numbers = numbers[:(len(numbers) - numCycle * RANGE_MAX)]
         return numbers
 
     @staticmethod
