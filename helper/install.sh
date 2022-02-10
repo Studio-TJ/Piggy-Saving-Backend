@@ -12,7 +12,7 @@ sudo mysql -e "CREATE USER IF NOT EXISTS 'piggysaving'@'localhost' IDENTIFIED BY
 sudo mysql -e "GRANT ALL PRIVILEGES ON piggysaving.* TO 'piggysaving'@'localhost';"
 sudo mysql -e "FLUSH PRIVILEGES"
 
-sudo mysql piggysaving -e "CREATE TABLE piggysaving(savingDate DATE,
+sudo mysql piggysaving -e "CREATE TABLE IF NOT EXISTS piggysaving(savingDate DATE,
                             amount FLOAT,
                             saved BOOLEAN,
                             sequence INT,

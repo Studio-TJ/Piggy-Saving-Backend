@@ -123,16 +123,11 @@ class Saving():
         db = Saving.__connectDb()
         rows = dict()
         query = ""
-        if option.desc:
-            if not option.withdraw:
-                query = "select savingDate, amount, saved from piggysaving where type = 'saving' order by savingDate desc"
-            else:
-                query = "select savingDate, amount, description from piggysaving where type = 'cost' order by savingDate desc"
+        if not option.withdraw:
+            query = "select savingDate, amount, saved, description, type from piggysaving where type = 'saving' order by savingDate desc"
         else:
-            if not option.withdraw:
-                query = "select savingDate, amount, saved from piggysaving where type = 'saving'"
-            else:
-                query = "select savingDate, amount, description from piggysaving where type = 'cost'"
+            query = "select savingDate, amount, saved, description, type from piggysaving where type = 'cost' order by savingDate desc"
+
         value = ()
         db[1].execute(query, value)
         results = db[1].fetchall()
@@ -140,10 +135,7 @@ class Saving():
         db[0].close()
         items = []
         for result in results:
-            if option.withdraw:
-                rows[str(result[0]) + str(seq)] = {"date":result[0], "amount":result[1], "description":result[2]}
-            else:
-                rows[str(result[0]) + str(seq)] = {"date":result[0], "amount":result[1], "saved":result[2]}
+            rows[str(result[0]) + str(seq)] = {"date":result[0], "amount":result[1], "saved":result[2], "description":result[3], "type":result[4]}
                 # items.append(Saving.__buildSavingItems(result))
             seq += 1
         return rows
