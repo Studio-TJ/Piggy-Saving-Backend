@@ -5,7 +5,7 @@ Description=:Piggy saving backend service
 Type=simple
 User=
 WorkingDirectory=
-ExecStart=/usr/bin/python3 -m uvicorn restserver:app --reload --port 8880
+ExecStart=~/.local/piggysaving/venv/bin/python3 -m uvicorn restserver:app --reload --port 8880
 
 [Install]
 WantedBy=multi-user.target
