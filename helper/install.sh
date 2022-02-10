@@ -14,6 +14,8 @@ sudo mysql piggysaving -e "CREATE TABLE piggysaving(savingDate DATE,
                             amount FLOAT,
                             saved BOOLEAN,
                             sequence INT,
+                            description varchar(255),
+                            type varchar(255),
                             PRIMARY KEY (savingDate, sequence)) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 
 echo 'Enter mail address for mailing service, leave empty if you want to disable mailing service.'
