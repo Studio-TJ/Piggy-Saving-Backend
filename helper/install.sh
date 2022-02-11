@@ -4,21 +4,7 @@ BASH_DIR=`dirname $BASH_SOURCE`
 BACKEND_TARGET="$HOME/.local/piggysaving"
 # Install packages
 sudo apt update
-sudo apt install mailutils mariadb-server python3 python3-venv
-
-# Prepare database
-sudo mysql -e "CREATE DATABASE IF NOT EXISTS piggysaving"
-sudo mysql -e "CREATE USER IF NOT EXISTS 'piggysaving'@'localhost' IDENTIFIED BY 'piggysaving';"
-sudo mysql -e "GRANT ALL PRIVILEGES ON piggysaving.* TO 'piggysaving'@'localhost';"
-sudo mysql -e "FLUSH PRIVILEGES"
-
-sudo mysql piggysaving -e "CREATE TABLE IF NOT EXISTS piggysaving(savingDate DATE,
-                            amount FLOAT,
-                            saved BOOLEAN,
-                            sequence INT,
-                            description varchar(255),
-                            type varchar(255),
-                            PRIMARY KEY (savingDate, sequence)) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+sudo apt install mailutils python3 python3-venv
 
 # echo 'Enter mail address for mailing service, leave empty if you want to disable mailing service.'
 # echo 'Enter the mail from address for mailing service:'

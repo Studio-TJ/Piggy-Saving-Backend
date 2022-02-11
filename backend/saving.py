@@ -3,13 +3,15 @@
 import random
 import datetime
 from sre_constants import RANGE
-import mysql.connector as sql
+import sqlite3
 from pydantic import BaseModel
 from apscheduler.schedulers.background import BackgroundScheduler
 import subprocess
 
 RANGE_MAX = 365
 RATIO = 10
+DB_FILENAME = "piggysaving.db"
+DB_VERSION = 1
 MAIL_TO = ""
 MAIL_FROM = ""
 
@@ -33,24 +35,47 @@ class SavingItems(BaseModel):
     amount: str
     saved: bool
 
+def dbMigration(con: sqlite3.Connection, cur: sqlite3.Cursor):
+    cur.execute("select * from version")
+    currentVersion = cur.fetchone()[0]
+    if currentVersion == DB_VERSION:
+        print("Running db version", str(DB_VERSION), ", no migration needed.")
+    else:
+        print("Migration needed from version", str(currentVersion), "to", str(DB_VERSION))
+        # current no migration has happened..
+
+def initializeDb():
+    con = sqlite3.connect(DB_FILENAME)
+    cur = con.cursor()
+    cur.execute(
+        "create table if not exists piggysaving(\
+            amount real,\
+            date text,\
+            saved int,\
+            sequence int,\
+            description text,\
+            type text,\
+            primary key (date, sequence))"
+    )
+    cur.execute("create table if not exists version(versionNumber int, primary key (versionNumber))")
+    cur.execute("insert or ignore into version (versionNumber) values (?)", (DB_VERSION, ))
+    con.commit()
+    dbMigration(con, cur)
+    con.close()
 class Saving():
     def __init__(self):
+        initializeDb()
         self._last = {"amount":0.0, "saved":0}
         self._scheduler = BackgroundScheduler()
         self._scheduler.add_job(self.autoRoll, "cron", hour=1, minute=0)
-        self._scheduler.add_job(Saving.mail, "cron", hour=22, minute=0)
+        # self._scheduler.add_job(Saving.mail, "cron", hour=22, minute=0)
         self._scheduler.start()
 
     @staticmethod
     def __connectDb():
-        mydb = sql.connect(
-            host="localhost",
-            user="piggysaving",
-            password="piggysaving",
-            database="piggysaving"
-        )
-        mycursor = mydb.cursor()
-        return (mydb, mycursor)
+        con = sqlite3.connect(DB_FILENAME)
+        cur = con.cursor()
+        return (con, cur)
 
     @staticmethod
     def mail():
@@ -81,25 +106,21 @@ class Saving():
     @staticmethod
     def __getNumberOfExistingEntryByDate(date: str) -> int:
         db = Saving.__connectDb()
-        query = "select count(*) from piggysaving where savingDate = %s"
-        value = (date,)
-        db[1].execute(query, value)
-        results = db[1].fetchall()
+        db[1].execute("select count(*) from piggysaving where date = ?", (date,))
+        results = db[1].fetchone()
         db[0].close()
         # Retrieve how many entries already exist with the given date
-        if results[0][0] == 0:
+        if results[0] == 0:
             return 1
         else:
-            return results[0][0]
+            return results[0]
 
     def autoRoll(self):
         self.writeNew()
 
     def getAmounts(self):
         db = Saving.__connectDb()
-        query = "select amount from piggysaving where amount > 0 order by savingDate desc"
-        value = ()
-        db[1].execute(query, value)
+        db[1].execute("select amount from piggysaving where amount > 0 order by date desc")
         results = db[1].fetchall()
         numbers = []
         for result in results:
@@ -122,29 +143,23 @@ class Saving():
     def retrieveAll(self, option : RetrieveAllItem):
         db = Saving.__connectDb()
         rows = dict()
-        query = ""
         if not option.withdraw:
-            query = "select savingDate, amount, saved, description, type from piggysaving where type = 'saving' order by savingDate desc"
+            db[1].execute("select date, amount, saved, description, type from piggysaving where type = 'saving' order by date desc")
         else:
-            query = "select savingDate, amount, saved, description, type from piggysaving where type = 'cost' order by savingDate desc"
-
-        value = ()
-        db[1].execute(query, value)
+            db[1].execute("select date, amount, saved, description, type from piggysaving where type = 'cost' order by date desc")
         results = db[1].fetchall()
         seq = 0
         db[0].close()
-        items = []
+
         for result in results:
-            rows[str(result[0]) + str(seq)] = {"date":result[0], "amount":result[1], "saved":result[2], "description":result[3], "type":result[4]}
+            rows[result[0] + str(seq)] = {"date":result[0], "amount":result[1], "saved":result[2], "description":result[3], "type":result[4]}
                 # items.append(Saving.__buildSavingItems(result))
             seq += 1
         return rows
 
     def sum(self):
         db = Saving.__connectDb()
-        query = "select sum(amount) from piggysaving where saved = 1"
-        value = ()
-        db[1].execute(query, value)
+        db[1].execute("select sum(amount) from piggysaving where saved = 1")
         result = db[1].fetchone()
         sum = result[0]
         db[0].close()
@@ -152,9 +167,7 @@ class Saving():
 
     def sumAll(self):
         db = Saving.__connectDb()
-        query = "select sum(amount) from piggysaving where type = 'saving'"
-        value = ()
-        db[1].execute(query, value)
+        db[1].execute("select sum(amount) from piggysaving where type = 'saving'")
         result = db[1].fetchone()
         sum = result[0]
         db[0].close()
@@ -162,19 +175,17 @@ class Saving():
 
     def sumInvested(self):
         db = Saving.__connectDb()
-        query = "select sum(amount) from piggysaving where sequence = 99"
-        value = ()
-        db[1].execute(query, value)
+        db[1].execute("select sum(amount) from piggysaving where type ='invest'")
         result = db[1].fetchone()
-        sum = -result[0]
+        sum = 0
+        if result[0] is not None:
+            sum = -result[0]
         db[0].close()
         return round(sum, 2)
 
     def used(self):
         db = Saving.__connectDb()
-        query = "select sum(amount) from piggysaving where type = 'cost'"
-        value = ()
-        db[1].execute(query, value)
+        db[1].execute("select sum(amount) from piggysaving where type = 'cost'")
         result = db[1].fetchone()
         sum = -result[0]
         db[0].close()
@@ -182,9 +193,7 @@ class Saving():
 
     def retrieveLast(self):
         db = Saving.__connectDb()
-        query = "select savingDate, amount, saved from piggysaving where type = 'saving' order by savingDate desc"
-        value = ()
-        db[1].execute(query, value)
+        db[1].execute("select date, amount, saved from piggysaving where type = 'saving' order by date desc")
         result = db[1].fetchone()
         self._last['amount'] = float(result[1])
         self._last['saved'] = result[2]
@@ -193,9 +202,7 @@ class Saving():
 
     def updateSaved(self, item: Saved):
         db = Saving.__connectDb()
-        query = "insert into piggysaving (savingDate, amount, saved, sequence) values (%s, %s, %s, %s) on duplicate key update saved=%s"
-        value = (item.date, 0, True, 0, True)
-        db[1].execute(query, value)
+        db[1].execute("update piggysaving set saved = ? where date = ? and sequence = 0", (int(item.saved), item.date))
         db[0].commit()
         db[0].close()
 
@@ -204,9 +211,7 @@ class Saving():
         db = Saving.__connectDb()
         if item.amount >= 0:
             item.amount = -item.amount
-        query = "insert into piggysaving (savingDate, amount, saved, sequence, description, type) values (%s, %s, %s, %s, %s, %s)"
-        value = (str(datetime.date.today()), item.amount, 1, newSeq, item.description, 'cost')
-        db[1].execute(query, value)
+        db[1].execute("insert or ignore into piggysaving (date, amount, saved, sequence, description, type) values (?, ?, ?, ?, ?, ?)", (str(datetime.date.today()), item.amount, 1, newSeq, item.description, 'cost'))
         db[0].commit()
         db[0].close()
 
@@ -215,22 +220,16 @@ class Saving():
         db = Saving.__connectDb()
         if item.amount >= 0:
             item.amount = -item.amount
-        query = "insert into piggysaving (savingDate, amount, saved, sequence, description, type) values (%s, %s, %s, %s, %s, %s)"
-        value = (str(datetime.date.today()), item.amount, 1, newSeq, item.description, 'invest')
-        db[1].execute(query, value)
+        db[1].execute("insert or ignore into piggysaving (date, amount, saved, sequence, description, type) values (?, ?, ?, ?, ?, ?)", (str(datetime.date.today()), item.amount, 1, newSeq, item.description, 'invest'))
         db[0].commit()
         db[0].close()
 
     def invested(self):
         db = Saving.__connectDb()
         rows = dict()
-        query = "select savingDate, amount, description from piggysaving where type = 'invest' order by savingDate desc"
-        value = ()
-        db[1].execute(query, value)
+        db[1].execute("select date, amount, description from piggysaving where type = 'invest' order by date desc")
         results = db[1].fetchall()
-        seq = 0
         db[0].close()
-        items = []
         for result in results:
             rows[str(result[0])] = {"date":result[0], "amount":result[1], "description":result[2]}
 
@@ -248,9 +247,7 @@ class Saving():
                 break
 
         db = Saving.__connectDb()
-        query = "insert into piggysaving (savingDate, amount, saved, sequence, type) values (%s, %s, %s, %s, %s) on duplicate key update amount=%s"
-        value = (str(datetime.date.today()), last, False, 0, 'saving', last)
-        db[1].execute(query, value)
+        db[1].execute("insert or ignore into piggysaving (date, amount, saved, sequence, description, type) values (?, ?, ?, ?, ?, ?)", (str(datetime.date.today()), last, 0, 0, None, 'saving'))
         db[0].commit()
         db[0].close()
         return last
