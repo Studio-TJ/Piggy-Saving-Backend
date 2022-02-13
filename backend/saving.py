@@ -62,6 +62,7 @@ def initializeDb():
     con.commit()
     dbMigration(con, cur)
     con.close()
+
 class Saving():
     def __init__(self):
         initializeDb()
@@ -161,7 +162,9 @@ class Saving():
         db = Saving.__connectDb()
         db[1].execute("select sum(amount) from piggysaving where saved = 1")
         result = db[1].fetchone()
-        sum = result[0]
+        sum = 0
+        if result[0] is  not None:
+            sum = result[0]
         db[0].close()
         return round(sum, 2)
 
@@ -169,7 +172,9 @@ class Saving():
         db = Saving.__connectDb()
         db[1].execute("select sum(amount) from piggysaving where type = 'saving'")
         result = db[1].fetchone()
-        sum = result[0]
+        sum = 0
+        if result[0] is  not None:
+            sum = result[0]
         db[0].close()
         return round(sum, 2)
 
@@ -187,7 +192,9 @@ class Saving():
         db = Saving.__connectDb()
         db[1].execute("select sum(amount) from piggysaving where type = 'cost'")
         result = db[1].fetchone()
-        sum = -result[0]
+        sum = 0
+        if result[0] is not None:
+            sum = -result[0]
         db[0].close()
         return round(sum, 2)
 
@@ -195,8 +202,9 @@ class Saving():
         db = Saving.__connectDb()
         db[1].execute("select date, amount, saved from piggysaving where type = 'saving' order by date desc")
         result = db[1].fetchone()
-        self._last['amount'] = float(result[1])
-        self._last['saved'] = result[2]
+        if result is not None:
+            self._last['amount'] = float(result[1])
+            self._last['saved'] = result[2]
         db[0].close()
         return self._last
 
