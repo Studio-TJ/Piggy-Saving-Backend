@@ -11,7 +11,10 @@ import subprocess
 RANGE_MAX = 365
 RATIO = 10
 DB_FILENAME = "piggysaving.db"
+DB_VERSION_ENTITY_NAME = "version"
 DB_VERSION = 1
+CONFIG_ENTITY_NAME = "config"
+
 MAIL_TO = ""
 MAIL_FROM = ""
 
@@ -35,8 +38,13 @@ class SavingItems(BaseModel):
     amount: str
     saved: bool
 
+class Config(BaseModel):
+    minimalUnit: float
+    endDate: str
+    numberOfDays: int
+
 def dbMigration(con: sqlite3.Connection, cur: sqlite3.Cursor):
-    cur.execute("select * from version")
+    cur.execute("select versionNumber from version")
     currentVersion = cur.fetchone()[0]
     if currentVersion == DB_VERSION:
         print("Running db version", str(DB_VERSION), ", no migration needed.")
@@ -57,15 +65,28 @@ def initializeDb():
             type text,\
             primary key (date, sequence))"
     )
-    cur.execute("create table if not exists version(versionNumber int, primary key (versionNumber))")
-    cur.execute("insert or ignore into version (versionNumber) values (?)", (DB_VERSION, ))
+    cur.execute("create table if not exists version(name text, versionNumber int, primary key (name))")
+    cur.execute("insert or ignore into version (name, versionNumber) values (?, ?)", (DB_VERSION_ENTITY_NAME, DB_VERSION))
+    cur.execute("create table if not exists config(name, text, minimalUnit real, endDate text, numberOfDays int, primary key (name))")
     con.commit()
     dbMigration(con, cur)
     con.close()
 
+def fetchConfig():
+    global RANGE_MAX
+    global RATIO
+    con = sqlite3.connect(DB_FILENAME)
+    cur = con.cursor()
+    cur.execute("select minimalUnit, endDate, numberOfDays from config")
+    result = cur.fetchone()
+    if result is not None:
+        RANGE_MAX = result[2]
+        RATIO = 1 / result[0]
+
 class Saving():
     def __init__(self):
         initializeDb()
+        fetchConfig()
         self._last = {"amount":0.0, "saved":0}
         self._scheduler = BackgroundScheduler()
         self._scheduler.add_job(self.autoRoll, "cron", hour=1, minute=0)
@@ -115,6 +136,12 @@ class Saving():
             return 1
         else:
             return results[0]
+
+    def updateConfig(self, config: Config):
+        db = Saving.__connectDb()
+        db[1].execute("insert into config (name, minimalUnit, endDate, numberOfDays) values (?, ?, ?, ?) on conflict (name) do update set minimalUnit = ?, endDate = ?, numberOfDays = ?", (CONFIG_ENTITY_NAME, config.minimalUnit, config.endDate, config.numberOfDays, config.minimalUnit, config.endDate, config.numberOfDays))
+        db[0].commit()
+        db[0].close()
 
     def autoRoll(self):
         self.writeNew()
@@ -228,7 +255,7 @@ class Saving():
         db = Saving.__connectDb()
         if item.amount >= 0:
             item.amount = -item.amount
-        db[1].execute("insert or ignore into piggysaving (date, amount, saved, sequence, description, type) values (?, ?, ?, ?, ?, ?)", (str(datetime.date.today()), item.amount, 1, newSeq, item.description, 'invest'))
+        db[1].execute("insert into piggysaving (date, amount, saved, sequence, description, type) values (?, ?, ?, ?, ?, ?)", (str(datetime.date.today()), item.amount, 1, newSeq, item.description, 'invest'))
         db[0].commit()
         db[0].close()
 
@@ -255,7 +282,7 @@ class Saving():
                 break
 
         db = Saving.__connectDb()
-        db[1].execute("insert or ignore into piggysaving (date, amount, saved, sequence, description, type) values (?, ?, ?, ?, ?, ?)", (str(datetime.date.today()), last, 0, 0, None, 'saving'))
+        db[1].execute("insert into piggysaving (date, amount, saved, sequence, description, type) values (?, ?, ?, ?, ?, ?) on conflict (date, sequence) do update set amount = ?", (str(datetime.date.today()), last, 0, 0, None, 'saving', last))
         db[0].commit()
         db[0].close()
         return last

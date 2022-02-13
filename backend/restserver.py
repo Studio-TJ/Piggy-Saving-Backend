@@ -2,7 +2,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from saving import Saving
-from saving import Saved, RetrieveAllItem, Withdraw, Invest
+from saving import Saved, RetrieveAllItem, Withdraw, Invest, Config
 
 app = FastAPI()
 
@@ -68,3 +68,7 @@ async def invest(item: Invest):
 @app.get("/invested")
 async def invested():
     return sav.invested()
+
+@app.post("/updateconfig")
+async def updateConfig(item: Config):
+    return sav.updateConfig(item)
