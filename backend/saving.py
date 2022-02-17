@@ -23,12 +23,16 @@ class Saved(BaseModel):
     saved: bool
 
 class Withdraw(BaseModel):
+    date: str
     amount: float
     description: str
+    delete: bool
+    sequence: int
 
 class Invest(BaseModel):
     amount: float
     description: str
+
 class RetrieveAllItem(BaseModel):
     desc: bool
     withdraw: bool
@@ -172,15 +176,15 @@ class Saving():
         db = Saving.__connectDb()
         rows = dict()
         if not option.withdraw:
-            db[1].execute("select date, amount, saved, description, type from piggysaving where type = 'saving' order by date desc")
+            db[1].execute("select date, amount, saved, description, type, sequence from piggysaving where type = 'saving' order by date desc")
         else:
-            db[1].execute("select date, amount, saved, description, type from piggysaving where type = 'cost' order by date desc")
+            db[1].execute("select date, amount, saved, description, type, sequence from piggysaving where type = 'cost' order by date desc")
         results = db[1].fetchall()
         seq = 0
         db[0].close()
 
         for result in results:
-            rows[result[0] + str(seq)] = {"date":result[0], "amount":result[1], "saved":result[2], "description":result[3], "type":result[4]}
+            rows[result[0] + str(seq)] = {"date":result[0], "amount":result[1], "saved":result[2], "description":result[3], "type":result[4], "sequence":result[5]}
                 # items.append(Saving.__buildSavingItems(result))
             seq += 1
         return rows
@@ -242,11 +246,15 @@ class Saving():
         db[0].close()
 
     def withdraw(self, item: Withdraw):
-        newSeq = Saving.__getNumberOfExistingEntryByDate(str(datetime.date.today()))
+        newSeq = Saving.__getNumberOfExistingEntryByDate(item.date) if (item.sequence == 0) else item.sequence
         db = Saving.__connectDb()
         if item.amount >= 0:
             item.amount = -item.amount
-        db[1].execute("insert or ignore into piggysaving (date, amount, saved, sequence, description, type) values (?, ?, ?, ?, ?, ?)", (str(datetime.date.today()), item.amount, 1, newSeq, item.description, 'cost'))
+        if item.delete == True:
+            db[1].execute("delete from piggysaving where date = ? and sequence = ? and type = ?", (item.date, item.sequence, 'cost'))
+        else:
+            db[1].execute("insert into piggysaving (date, amount, saved, sequence, description, type) values (?, ?, ?, ?, ?, ?) \
+            on conflict (date, sequence) do update set amount = ?, description = ?", (item.date, item.amount, 1, newSeq, item.description, 'cost', item.amount, item.description))
         db[0].commit()
         db[0].close()
 
