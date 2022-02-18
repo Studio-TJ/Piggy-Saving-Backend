@@ -18,6 +18,9 @@ CONFIG_ENTITY_NAME = "config"
 MAIL_TO = ""
 MAIL_FROM = ""
 
+class Roll(BaseModel):
+    date: str
+
 class Saved(BaseModel):
     date: str
     saved: bool
@@ -148,7 +151,9 @@ class Saving():
         db[0].close()
 
     def autoRoll(self):
-        self.writeNew()
+        item = Roll(date=str(datetime.date.today()))
+        print(item)
+        self.writeNew(item)
 
     def getAmounts(self):
         db = Saving.__connectDb()
@@ -278,7 +283,7 @@ class Saving():
 
         return rows
 
-    def writeNew(self):
+    def writeNew(self, item: Roll):
         numbers = self.getAmounts()
         if len(numbers) == 365:
             exit()
@@ -290,7 +295,7 @@ class Saving():
                 break
 
         db = Saving.__connectDb()
-        db[1].execute("insert into piggysaving (date, amount, saved, sequence, description, type) values (?, ?, ?, ?, ?, ?) on conflict (date, sequence) do update set amount = ?", (str(datetime.date.today()), last, 0, 0, None, 'saving', last))
+        db[1].execute("insert into piggysaving (date, amount, saved, sequence, description, type) values (?, ?, ?, ?, ?, ?) on conflict (date, sequence) do update set amount = ?", (item.date, last, 0, 0, None, 'saving', last))
         db[0].commit()
         db[0].close()
         return last

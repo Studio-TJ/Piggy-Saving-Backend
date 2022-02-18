@@ -2,7 +2,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from saving import Saving
-from saving import Saved, RetrieveAllItem, Withdraw, Invest, Config
+from saving import Saved, RetrieveAllItem, Withdraw, Invest, Config, Roll
 
 app = FastAPI()
 
@@ -24,9 +24,9 @@ app.add_middleware(
 # sav = saving.Saving()
 sav = Saving()
 
-@app.get("/roll")
-async def roll():
-    num = sav.writeNew()
+@app.post("/roll")
+async def roll(item: Roll):
+    num = sav.writeNew(item)
     return {"newNum": float(num)}
 
 @app.post("/all")
