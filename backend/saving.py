@@ -150,6 +150,16 @@ class Saving():
         db[0].commit()
         db[0].close()
 
+    def retrieveConfig(self):
+        db = Saving.__connectDb()
+        db[1].execute("select minimalUnit, endDate, numberOfDays from config")
+        result = db[1].fetchone()
+        db[0].close()
+        ret = dict()
+        if result is not None:
+            ret = {"minimalUnit": result[0], "endDate": result[1], "numberOfDays": result[2]}
+        return ret
+
     def autoRoll(self):
         item = Roll(date=str(datetime.date.today()))
         print(item)

@@ -72,3 +72,7 @@ async def invested():
 @app.post("/updateconfig")
 async def updateConfig(item: Config):
     return sav.updateConfig(item)
+
+@app.get("/retrieveconfig")
+async def retrieveConfig():
+    return sav.retrieveConfig()
