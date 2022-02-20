@@ -74,7 +74,7 @@ def initializeDb():
     )
     cur.execute("create table if not exists version(name text, versionNumber int, primary key (name))")
     cur.execute("insert or ignore into version (name, versionNumber) values (?, ?)", (DB_VERSION_ENTITY_NAME, DB_VERSION))
-    cur.execute("create table if not exists config(name, text, minimalUnit real, endDate text, numberOfDays int, primary key (name))")
+    cur.execute("create table if not exists config(name text, minimalUnit real, endDate text, numberOfDays int, primary key (name))")
     con.commit()
     dbMigration(con, cur)
     con.close()
