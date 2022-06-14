@@ -299,7 +299,7 @@ class Saving():
             exit()
         last = int()
         while True:
-            last = random.randrange(1, RANGE_MAX)
+            last = random.randint(1, RANGE_MAX)
             last = float(last) / RATIO
             if not last in numbers:
                 break
