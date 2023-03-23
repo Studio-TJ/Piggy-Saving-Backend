@@ -21,6 +21,10 @@ fi
 
 mkdir -p $BACKEND_TARGET
 
+cp -r $BASH_DIR/../backend/{restserver.py,saving.py} $BACKEND_TARGET
+
+cp -r $BASH_DIR/requirements.txt $BACKEND_TARGET
+
 python3 -m venv $BACKEND_TARGET/venv
 
 source $BACKEND_TARGET/venv/bin/activate
@@ -29,7 +33,6 @@ pip install -r $BASH_DIR/requirements.txt
 
 deactivate
 
-cp -r $BASH_DIR/../backend/{restserver.py,saving.py} $BACKEND_TARGET
 
 # sed -i 's/MAIL_FROM = ""/MAIL_FROM = "'"$mailFrom"'"/g' $BACKEND_TARGET/saving.py
 # sed -i 's/MAIL_TO = ""/MAIL_TO = "'"$mailTo"'"/g' $BACKEND_TARGET/saving.py
